@@ -1,5 +1,7 @@
 window.onload = function() {
   let location;
+
+  /* get geolocation from browser API */
   navigator.geolocation.getCurrentPosition( p => {
     let url = 'https://fcc-weather-api.glitch.me/api/current?lon='
             + p.coords.longitude
@@ -46,7 +48,6 @@ window.onload = function() {
         $( '#icon > img' ).attr( 'alt', uweatherDesc );
         $( '#icon > p' ).html( uweatherDesc );
 
-
         /* RAW DATA */
         $( '#rawData' ).append( render );
 
@@ -57,7 +58,6 @@ window.onload = function() {
         $( '#day' ).html( udatetime.day );
         $( '#year' ).html( udatetime.year );
         $( '#time' ).html( udatetime.time );
-
 
         /* render sunrise time */
         let usunrise = parseDateTime( data.sys.sunrise );
@@ -90,9 +90,12 @@ window.onload = function() {
 }
 
 function parseDateTime( rawDt ) {
+  /* IN: raw date/time information nested within weather JSON
+   * OUT: new object containing processed date/time data
+   */
   dtStr = new Date( rawDt * 1000 ).toString();
   dt = dtStr.split( ' ' );
-  dtObj = {
+  return {
     'weekday': function() {
       let daysToReturn = {
          'Sun': 'Sunday',
@@ -125,21 +128,20 @@ function parseDateTime( rawDt ) {
     'day': dt[2],
     'year': dt[3],
     'time': parseTime( dt[4], dt[6] )
-  }
-  return {
-    'weekday': dtObj.weekday(),
-    'month': dtObj.month(),
-    'day': dtObj.day,
-    'year': dtObj.year,
-    'time': dtObj.time,
-   }
+  };
 }
 
 function parseTemp( rawTemp, celsius ) {
+  /* IN: temperature in celsius
+   * OUT: temperature in fahrenheit
+   */
   return celsius ? rawTemp + '°C': Math.floor( rawTemp * 1.8 + 32 ) + '°F';
 }
 
 function parseTime( rawTime, rawDt ) {
+  /* IN: time in seconds, measured from some reference point determined by API
+   * OUT: time in HH:MM format
+   */
   /* determine daylight savings time from API response */
   let dst = rawDt.replace( /[()]/g, '' ).split( '' )[1] == 'D' ? 11 : 12;
 
@@ -161,6 +163,9 @@ function parseTime( rawTime, rawDt ) {
 }
 
 function parseWind( rawWind, isVector = false ) {
+  /* IN: raw wind information from weather JSON
+   * OUT: wind magnitude, and if available, wind direction
+   */
   if( !isVector ) { return Math.floor( rawWind.speed ) + ' mph'; }
   else {
     let angle = rawWind.deg
@@ -196,6 +201,9 @@ function parseWind( rawWind, isVector = false ) {
 }
 
 function parseClouds( rawClouds ) {
+  /* IN: integer representing cloudiness
+   * OUT: string description of cloudiness
+   */
   if( rawClouds >= 0 && rawClouds <= 20 ) { return 'Clear'; }
   else if( rawClouds > 20 && rawClouds <= 50 ) { return 'Partly Cloudy'; }
   else if( rawClouds > 50 && rawClouds <= 80 ) { return 'Cloudy'; }
